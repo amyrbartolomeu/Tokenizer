@@ -14,8 +14,9 @@ Digitos = '0123456789'
 Alfabeto = 'abcdefghijklmnopqrstuvwxyz'
 Reservadas = 'if'
 
-
 ### Tratando erros ###
+
+
 class Error:
     def __init__(self, pos_start, pos_end, error_name, details):
         self.pos_start = pos_start
@@ -60,14 +61,15 @@ class Position:
 ### Tokens ###
 TT_INT = 'Int'
 TT_FLOAT = 'Float'
-TT_PLUS = 'Soma'
-TT_MINUS = 'Sub'
-TT_MUL = 'Mult'
-TT_DIV = 'Div'
-TT_LPAREN = 'ParenEsq'
-TT_RPAREN = 'ParenDir'
+TT_ARIT = 'Operador aritmético'
+TT_LPAREN = 'Abre paren'
+TT_RPAREN = 'Fecha paren'
+TT_LKEY = 'Abre chave'
+TT_RKEY = 'Fecha chave'
 TT_IDENT = 'Identificadores'
 TT_RES = 'Palavra reservada'
+TT_OPER = 'Operador relacional'
+TT_ATRIB = 'Atribuição'
 
 
 class Token:
@@ -108,20 +110,32 @@ class Lexer:
             elif self.current_char in Digitos:
                 tokens.append(self.make_number())
 
+            elif self.current_char == '=':
+                tokens.append(Token(TT_ATRIB, '='))
+                self.advance()
+
             elif self.current_char == '+':
-                tokens.append(Token(TT_PLUS, '+'))
+                tokens.append(Token(TT_ARIT, '+'))
+                self.advance()
+
+            elif self.current_char == '<':
+                tokens.append(Token(TT_OPER, '<'))
+                self.advance()
+
+            elif self.current_char == '>':
+                tokens.append(Token(TT_OPER, '>'))
                 self.advance()
 
             elif self.current_char == '-':
-                tokens.append(Token(TT_MINUS, '-'))
+                tokens.append(Token(TT_ARIT, '-'))
                 self.advance()
 
             elif self.current_char == '*':
-                tokens.append(Token(TT_MUL, '*'))
+                tokens.append(Token(TT_ARIT, '*'))
                 self.advance()
 
             elif self.current_char == '/':
-                tokens.append(Token(TT_DIV, '/'))
+                tokens.append(Token(TT_ARIT, '/'))
                 self.advance()
 
             elif self.current_char == '(':
@@ -131,11 +145,18 @@ class Lexer:
             elif self.current_char == ')':
                 tokens.append(Token(TT_RPAREN, ')'))
                 self.advance()
+
+            elif self.current_char == '{':
+                tokens.append(Token(TT_LKEY, '{'))
+                self.advance()
+
+            elif self.current_char == '}':
+                tokens.append(Token(TT_RKEY, '}'))
+                self.advance()
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
                 self.advance()
-                print("DEU ERRO")
                 return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
         return tokens, None
 
@@ -181,5 +202,4 @@ if __name__ == '__main__':
     else:
         print(erro.as_string())
 
-fd.close
 fd.close()
