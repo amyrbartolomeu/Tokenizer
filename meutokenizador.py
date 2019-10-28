@@ -182,3 +182,4 @@ if __name__ == '__main__':
         print(erro.as_string())
 
 fd.close
+fd.close()
