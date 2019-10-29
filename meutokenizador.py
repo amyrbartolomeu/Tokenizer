@@ -1,18 +1,13 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
-import curses
-
 ### Abrindo arquivo fonte ###
 NOME_ARQUIVO = 'arquivo.txt'
 fd = open(NOME_ARQUIVO, 'r')
 stream = fd.read()
 
-
 ### Constantes ###
 Digitos = '0123456789'
 Alfabeto = 'abcdefghijklmnopqrstuvwxyz'
 Reservadas = 'if'
+RELACIONAIS = ['<', '>', '<=', '>=', '==', '!=']
 
 ### Tratando erros ###
 
@@ -34,8 +29,9 @@ class IllegalCharError(Error):
     def __init__(self, pos_start, pos_end, details):
         super().__init__(pos_start, pos_end, 'Illegal Character', details)
 
-
 ### Posição ###
+
+
 class Position:
     def __init__(self, idx, ln, col, fn, ftxt):
         self.idx = idx
@@ -68,7 +64,7 @@ TT_LKEY = 'Abre chave'
 TT_RKEY = 'Fecha chave'
 TT_IDENT = 'Identificadores'
 TT_RES = 'Palavra reservada'
-TT_OPER = 'Operador relacional'
+TT_REL = 'Operador relacional'
 TT_ATRIB = 'Atribuição'
 
 
@@ -82,8 +78,9 @@ class Token:
             return f'{self.type}:{self.value}'
         return f'{self.type}'
 
-
 ### Lexer ###
+
+
 class Lexer:
     def __init__(self, fn, text):
         self.fn = fn
@@ -110,20 +107,15 @@ class Lexer:
             elif self.current_char in Digitos:
                 tokens.append(self.make_number())
 
+            elif self.current_char in RELACIONAIS:
+                tokens.append(self.relacionais())
+
             elif self.current_char == '=':
                 tokens.append(Token(TT_ATRIB, '='))
                 self.advance()
 
             elif self.current_char == '+':
                 tokens.append(Token(TT_ARIT, '+'))
-                self.advance()
-
-            elif self.current_char == '<':
-                tokens.append(Token(TT_OPER, '<'))
-                self.advance()
-
-            elif self.current_char == '>':
-                tokens.append(Token(TT_OPER, '>'))
                 self.advance()
 
             elif self.current_char == '-':
@@ -160,10 +152,17 @@ class Lexer:
                 return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
         return tokens, None
 
+    ###finalizar relacioanis###
+    def relacionais(self):
+        guarda = self.current_char
+        self.advance()
+        porco = str(guarda) + str(self.current_char)
+        if porco in RELACIONAIS:
+            return Token(TT_REL, porco)
+
     def identifiers(self):
         guarda = self.current_char
         self.advance()
-
         while (self.current_char != None) and self.current_char.isalnum():
             guarda += self.current_char
             self.advance()
