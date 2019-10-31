@@ -111,10 +111,6 @@ class Lexer:
             elif self.current_char in START_REL:
                 tokens.append(self.relacionais())
 
-            elif self.current_char == '=':
-                tokens.append(Token(TT_ATRIB, '='))
-                self.advance()
-
             elif self.current_char == '+':
                 tokens.append(Token(TT_ARIT, '+'))
                 self.advance()
@@ -153,7 +149,7 @@ class Lexer:
                 return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
         return tokens, None
 
-    ###finalizar relacioanis (problema no '=' atribuição)###
+
     def relacionais(self):
         guarda = self.current_char
         self.advance()
@@ -164,10 +160,15 @@ class Lexer:
                 self.advance()
 
             relacional = guarda + self.current_char
+
             if relacional in RELACIONAIS:
+                self.advance()
                 return Token(TT_REL, relacional)
             elif guarda in RELACIONAIS:
                 return Token(TT_REL, guarda)
+            else:
+                return Token(TT_ATRIB, guarda)
+                
             
 
     def identifiers(self):
