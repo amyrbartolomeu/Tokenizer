@@ -166,9 +166,9 @@ class Lexer:
                 return Token(TT_REL, relacional)
             elif guarda in RELACIONAIS:
                 return Token(TT_REL, guarda)
-            else:
-                return Token(TT_ATRIB, guarda)
-                
+            elif guarda == '=':
+                return Token(TT_ATRIB,guarda)
+
             
 
     def identifiers(self):
