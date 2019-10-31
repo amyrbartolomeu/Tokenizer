@@ -7,7 +7,8 @@ stream = fd.read()
 Digitos = '0123456789'
 Alfabeto = 'abcdefghijklmnopqrstuvwxyz'
 Reservadas = 'if'
-RELACIONAIS = ['<', '>', '<=', '>=', '==', '!=']
+START_REL = ['<', '>', '!', '=']
+RELACIONAIS = [ '<', '>', '<=', '>=', '==', '!=']
 
 ### Tratando erros ###
 
@@ -107,7 +108,7 @@ class Lexer:
             elif self.current_char in Digitos:
                 tokens.append(self.make_number())
 
-            elif self.current_char in RELACIONAIS:
+            elif self.current_char in START_REL:
                 tokens.append(self.relacionais())
 
             elif self.current_char == '=':
@@ -152,13 +153,22 @@ class Lexer:
                 return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
         return tokens, None
 
-    ###finalizar relacioanis###
+    ###finalizar relacioanis (problema no '=' atribuição)###
     def relacionais(self):
         guarda = self.current_char
         self.advance()
-        porco = str(guarda) + str(self.current_char)
-        if porco in RELACIONAIS:
-            return Token(TT_REL, porco)
+        if self.current_char != None:
+            
+            # Ignora espaço em branco
+            while self.current_char in ' \t\n':
+                self.advance()
+
+            relacional = guarda + self.current_char
+            if relacional in RELACIONAIS:
+                return Token(TT_REL, relacional)
+            elif guarda in RELACIONAIS:
+                return Token(TT_REL, guarda)
+            
 
     def identifiers(self):
         guarda = self.current_char
@@ -189,8 +199,7 @@ class Lexer:
             return Token(TT_INT, int(num_str))
         else:
             return Token(TT_FLOAT, float(num_str))
-
-
+    
 lexer = Lexer(NOME_ARQUIVO, stream)
 
 if __name__ == '__main__':
