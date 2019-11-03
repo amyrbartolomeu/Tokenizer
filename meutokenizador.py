@@ -8,7 +8,7 @@ Digitos = '0123456789'
 Alfabeto = 'abcdefghijklmnopqrstuvwxyz'
 Reservadas = 'if'
 START_REL = ['<', '>', '!', '=']
-RELACIONAIS = [ '<', '>', '<=', '>=', '==', '!=']
+RELACIONAIS = ['<', '>', '<=', '>=', '==', '!=']
 
 ### Tratando erros ###
 
@@ -67,6 +67,7 @@ TT_IDENT = 'Identificadores'
 TT_RES = 'Palavra reservada'
 TT_REL = 'Operador relacional'
 TT_ATRIB = 'Atribuição'
+TT_COM = 'Comentario'
 
 
 class Token:
@@ -102,43 +103,52 @@ class Lexer:
             if self.current_char in ' \t\n':
                 self.advance()
 
+            elif self.current_char == '/':
+                guarda = self.current_char
+                self.advance()
+                if guarda + self.current_char == '//':
+                    self.advance()
+                    porco = ''
+                    while self.current_char != '\n':
+                        self.advance()
+                        porco += self.current_char
+                    tokens.append(Token(TT_COM, porco))
+                elif guarda + self.current_char == '/*':
+                    self.advance()
+                    porco = ''
+                    # loop infinito
+                    while self.current_char != '*/':
+                        self.advance()
+                        porco += str(self.current_char)
+                    tokens.append(Token(TT_COM, porco))
+                else:
+                    tokens.append(Token(TT_ARIT, '/'))
+                    self.advance()
+
             elif self.current_char.isalpha():
                 tokens.append(self.identifiers())
-
             elif self.current_char in Digitos:
                 tokens.append(self.make_number())
-
             elif self.current_char in START_REL:
                 tokens.append(self.relacionais())
-
             elif self.current_char == '+':
                 tokens.append(Token(TT_ARIT, '+'))
                 self.advance()
-
             elif self.current_char == '-':
                 tokens.append(Token(TT_ARIT, '-'))
                 self.advance()
-
             elif self.current_char == '*':
                 tokens.append(Token(TT_ARIT, '*'))
                 self.advance()
-
-            elif self.current_char == '/':
-                tokens.append(Token(TT_ARIT, '/'))
-                self.advance()
-
             elif self.current_char == '(':
                 tokens.append(Token(TT_LPAREN, '('))
                 self.advance()
-
             elif self.current_char == ')':
                 tokens.append(Token(TT_RPAREN, ')'))
                 self.advance()
-
             elif self.current_char == '{':
                 tokens.append(Token(TT_LKEY, '{'))
                 self.advance()
-
             elif self.current_char == '}':
                 tokens.append(Token(TT_RKEY, '}'))
                 self.advance()
@@ -149,12 +159,11 @@ class Lexer:
                 return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
         return tokens, None
 
-
     def relacionais(self):
         guarda = self.current_char
         self.advance()
         if self.current_char != None:
-            
+
             # Ignora espaço em branco
             while self.current_char in ' \t\n':
                 self.advance()
@@ -167,9 +176,7 @@ class Lexer:
             elif guarda in RELACIONAIS:
                 return Token(TT_REL, guarda)
             elif guarda == '=':
-                return Token(TT_ATRIB,guarda)
-
-            
+                return Token(TT_ATRIB, guarda)
 
     def identifiers(self):
         guarda = self.current_char
@@ -178,7 +185,7 @@ class Lexer:
             guarda += self.current_char
             self.advance()
 
-        if guarda in Reservadas:
+        if guarda + self.current_char in Reservadas:
             return Token(TT_RES, guarda)
         else:
             return Token(TT_IDENT, guarda)
@@ -200,7 +207,8 @@ class Lexer:
             return Token(TT_INT, int(num_str))
         else:
             return Token(TT_FLOAT, float(num_str))
-    
+
+
 lexer = Lexer(NOME_ARQUIVO, stream)
 
 if __name__ == '__main__':
