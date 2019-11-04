@@ -6,7 +6,7 @@ stream = fd.read()
 ### Constantes ###
 Digitos = '0123456789'
 Alfabeto = 'abcdefghijklmnopqrstuvwxyz'
-Reservadas = 'if'
+Reservadas = ['if']
 START_REL = ['<', '>', '!', '=']
 RELACIONAIS = ['<', '>', '<=', '>=', '==', '!=']
 
@@ -77,7 +77,7 @@ class Token:
 
     def __repr__(self):
         if self.value:
-            return f'{self.type}:{self.value}'
+            return f'{self.type}:"{self.value}"'
         return f'{self.type}'
 
 ### Lexer ###
@@ -104,23 +104,32 @@ class Lexer:
                 self.advance()
 
             elif self.current_char == '/':
-                guarda = self.current_char
+                last_char = self.current_char
                 self.advance()
-                if guarda + self.current_char == '//':
+                if last_char + self.current_char == '//':
                     self.advance()
-                    porco = ''
+                    lexema = ''
                     while self.current_char != '\n':
                         self.advance()
-                        porco += self.current_char
-                    tokens.append(Token(TT_COM, porco))
-                elif guarda + self.current_char == '/*':
+                        lexema += self.current_char
+                    tokens.append(Token(TT_COM, lexema))
+                elif last_char + self.current_char == '/*':
                     self.advance()
-                    porco = ''
-                    # loop infinito
-                    while self.current_char != '*/':
-                        self.advance()
-                        porco += str(self.current_char)
-                    tokens.append(Token(TT_COM, porco))
+                    lexema = ''
+                    while True:
+                        lexema += self.current_char
+                        if self.current_char == '*':
+                            last_char = self.current_char
+                            self.advance()
+                            if self.current_char == '/':
+                                self.advance()
+                                tokens.append(Token(TT_COM, lexema[:-1]))
+                                break
+                        else:
+                            self.advance()
+                            if self.current_char == None:
+                                break
+                            continue
                 else:
                     tokens.append(Token(TT_ARIT, '/'))
                     self.advance()
@@ -185,7 +194,7 @@ class Lexer:
             guarda += self.current_char
             self.advance()
 
-        if guarda + self.current_char in Reservadas:
+        if guarda in Reservadas:
             return Token(TT_RES, guarda)
         else:
             return Token(TT_IDENT, guarda)
